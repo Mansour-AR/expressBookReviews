@@ -36,55 +36,101 @@ public_users.post("/register", (req,res) => {
     return res.status(404).json({message: "Unable to register user."});
 });
 
+// Promise to get the book list available in the shop
+function getBooks() {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(books);
+      }, 1000);
+    });
+  }
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
-  // Send JSON response with formatted books data
-   res.send(JSON.stringify(books,null,4));
+    getBooks()
+    .then((bookList) => {
+      res.send(JSON.stringify(bookList, null, 4));
+    })
+    .catch((error) => {
+      res.status(500).send("Error fetching books");
+    });
 });
+
+//Promise to get book details based on ISBN
+function getBookByISBN(isbn) {
+    return new Promise((resolve, reject) => {
+      const booksArray = Object.values(books);
+      const filteredBooks = booksArray.filter((book) => book.isbn === isbn);
+      setTimeout(() => {
+        if (filteredBooks.length > 0) {
+          resolve(filteredBooks); 
+        } else {
+          reject("Book not found"); 
+        }
+      }, 1000); 
+    });
+  }
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
-  // Extract the ISBN parameter from the request URL
     const ISBN = req.params.isbn;
     const booksArray = Object.values(books);
-    // Filter the users array to find books whose ISBN matches the extracted ISBN parameter
     let filtered_books = booksArray.filter((book) => book.isbn === ISBN);
-    // First check whether Book exitst or not and Send the filtered_books array as the response to the client
     if (filtered_books.length > 0) {
         res.send(filtered_books);
     } else {
         res.status(404).send({ message: "Book not found" });
     }
  });
-  
+
+//Promise to get book details based on author
+ function getBooksByAuthor(author) {
+    return new Promise((resolve, reject) => {
+      const booksArray = Object.values(books);
+      const filteredBooks = booksArray.filter((book) => book.author === author);
+      setTimeout(() => {
+        if (filteredBooks.length > 0) {
+          resolve(filteredBooks); 
+        } else {
+          reject("Book not found"); 
+        }
+      }, 1000); 
+    });
+  }
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
-   // Extract the author parameter from the request URL
-     const author = req.params.author;
-     const booksArray = Object.values(books);
-     // Filter the users array to find books whose author matches the extracted author parameter
-     let filtered_books = booksArray.filter((book) => book.author === author);
-     // First check whether Book exitst or not and Send the filtered_books array as the response to the client
-     if (filtered_books.length > 0) {
-         res.send(filtered_books);
-     } else {
-         res.status(404).send({ message: "Book not found" });
-     }
+    const author = req.params.author;
+    getBooksByAuthor(author)
+      .then((filteredBooks) => {
+        res.send(filteredBooks); 
+      })
+      .catch((error) => {
+        res.status(404).send({ message: error });
+      });
 });
-
+//Promise to get all books based on title
+function getBooksByTitle(title) {
+    return new Promise((resolve, reject) => {
+      const booksArray = Object.values(books);
+      const filteredBooks = booksArray.filter((book) => book.title === title);
+      setTimeout(() => {
+        if (filteredBooks.length > 0) {
+          resolve(filteredBooks); 
+        } else {
+          reject("Book not found");
+        }
+      }, 1000);
+    });
+  }
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
-   // Extract the title parameter from the request URL
-  const title = req.params.title;
-  const booksArray = Object.values(books);
-  // Filter the books array to find users whose title matches the extracted title parameter
-  let filtered_books = booksArray.filter((book) => book.title === title);
-  // First check whether Book exitst or not and Send the filtered_books array as the response to the client
-  if (filtered_books.length > 0) {
-      res.send(filtered_books);
-  } else {
-      res.status(404).send({ message: "Book not found" });
-  }
+    const title = req.params.title;
+    getBooksByTitle(title)
+      .then((filteredBooks) => {
+        res.send(filteredBooks); 
+      })
+      .catch((error) => {
+        res.status(404).send({ message: error }); 
+      });
 });
 
 //  Get book review
